@@ -7,6 +7,8 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
+#include <sys/wait.h>
 #define CPU_VENDOR_OS "x86_64-unknown-linux-gnu"
 #define SA struct sockaddr
 #define MAXLINE 1024

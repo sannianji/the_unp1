@@ -1,4 +1,12 @@
 #include "unp.h"
+int maxfd(int n1,int n2)
+{
+	return (n1>n2)?n1:n2;
+}
+int minfd(int n1,int n2)
+{
+	return (n1>n2)?n2:n1;
+}
 char *sock_ntop(const struct sockaddr *sa,socklen_t salen)
 {
 	char portstr[8];

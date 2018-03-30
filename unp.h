@@ -23,5 +23,6 @@ ssize_t readlinbuf(void **);
 void err_sys(const char *,...);
 void err_quit(const char *,...);
 int sockfd_to_family(int);
-
+int maxfd(int,int);
+int minfd(int,int);
 #endif

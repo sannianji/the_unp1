@@ -1,5 +1,5 @@
 #!/bin/bash
-for((i=0;i<10000;i++))
+for((i=0;i<100;i++))
 do
 	cat *|./strcliselect02 127.0.0.1 &> shell_test_log &
 	echo finishd

@@ -9,11 +9,16 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <poll.h>
+#include <sys/stropts.h>
+#include <limits.h>
 #define CPU_VENDOR_OS "x86_64-unknown-linux-gnu"
 #define SA struct sockaddr
 #define MAXLINE 1024
 #define LISTENQ 1024
 #define SERV_PORT 9877
+#define INFTIM -1
+#define OPEN_MAX 1024
 char *sock_ntop(const struct sockaddr*,socklen_t);
 ssize_t writen(int fd,const void *vptr,size_t n);
 ssize_t readn(int,void*,size_t);

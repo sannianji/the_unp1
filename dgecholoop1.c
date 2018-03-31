@@ -17,6 +17,8 @@ void dg_echo(int sockfd,SA *pcliaddr,socklen_t clilen)
 		if(recvfrom(sockfd,mesg,MAXLINE,0,pcliaddr,&len)<0)
 			err_sys("recvfrom");
 		count++;
+		printf("received %d\n",count);
+		fflush(stdout);
 	}
 }
 

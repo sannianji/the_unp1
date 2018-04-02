@@ -12,10 +12,10 @@ void dg_echo(int sockfd,SA *pcliaddr,socklen_t clilen)
 	if(signal(SIGINT,recvfrom_init)<0)
 		err_sys("signal");
 
-	n=220*1024;
+//	n=220*1024;
 	
-	if(setsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,&n,sizeof(n))<0)
-		err_sys("setsockopt");
+//	if(setsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,&n,sizeof(n))<0)
+//		err_sys("setsockopt");
 
 	for(;;)
 	{

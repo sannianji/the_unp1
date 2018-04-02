@@ -187,6 +187,34 @@ void err_quit(const char *str,...)
 	fflush(stderr);
 	exit(-1);
 }
+void err_msg(const char *str,...)
+{
+	va_list ap;
+	va_start(ap,str);
+	char buff[MAXLINE];
+	vsnprintf(buff,MAXLINE,str,ap);
+	va_end(ap);
+	if(buff[strlen(buff)-1]!='\n')
+		strcat(buff,"\n");
+	fflush(stdout);
+	fputs(buff,stderr);
+	fflush(stderr);
+	return;
+}
+void err_ret(const char *str,...)
+{
+	va_list ap;
+	va_start(ap,str);
+	char buff[MAXLINE];
+	vsnprintf(buff,MAXLINE,str,ap);
+	va_end(ap);
+	if(buff[strlen(buff)-1]!='\n')
+		strcat(buff,"\n");
+	fflush(stdout);
+	fputs(buff,stderr);
+	fflush(stderr);
+	exit(-1);
+}
 int sockfd_to_family(int sockfd)
 {
 	struct sockaddr_storage ss;

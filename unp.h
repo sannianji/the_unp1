@@ -1,5 +1,6 @@
 #ifndef __UNP_H
 #define __UNP_H
+#include <netdb.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -12,6 +13,7 @@
 #include <poll.h>
 #include <sys/stropts.h>
 #include <limits.h>
+#include <sys/socket.h>
 #define CPU_VENDOR_OS "x86_64-unknown-linux-gnu"
 #define SA struct sockaddr
 #define MAXLINE 1024
@@ -27,6 +29,8 @@ ssize_t readline2(int,void *,size_t);
 ssize_t readlinbuf(void **);
 void err_sys(const char *,...);
 void err_quit(const char *,...);
+void err_msg(const char *,...);
+void err_ret(const char *,...);
 int sockfd_to_family(int);
 int maxfd(int,int);
 int minfd(int,int);

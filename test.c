@@ -1,5 +1,8 @@
 #include "unp.h"
 int main()
 {
-	err_sys("helloworld");
+	int i=3;
+	for(;i!=3;i++)
+		printf("%d",i);
+	printf("finished");
 }

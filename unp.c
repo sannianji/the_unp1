@@ -26,6 +26,19 @@ char *sock_ntop(const struct sockaddr *sa,socklen_t salen)
 			}
 			return str;
 		}
+		case AF_INET6:
+		{
+			struct sockaddr_in6 *sin=(struct sockaddr_in6 *)sa;
+
+			if(net_ntop(AF_INET6,&sin->sin_addr,str,sizeof(str))==NULL)
+				return NULL;
+			if(ntohs(sin->sin_port)!=0)
+			{
+				snprintf(portstr,sizeof(portstr),":%d",ntohs(sin->sin_port));
+				strcat(str,portstr);
+			}
+			return str;
+		}
 	}
 }
 ssize_t writen(int fd,const void *vptr,size_t n)
@@ -294,6 +307,114 @@ int tcp_listen(const char *host,const char *serv,socklen_t *addrlenp)
 
 	do{
 		listenfd=socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+		if(listenfd<0)
+			continue;
+		if(setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))<0)
+			err_sys("setsockopt");
+
+		if(bind(listenfd,res->ai_addr,res->ai_addrlen)==0)
+			break;
+
+		if(close(listenfd)<0)
+			err_sys("close");	
+	}while((res=res->ai_next)!=NULL);
+	if(res==NULL)
+		err_sys("tcp_listen error for %s,%s",host,serv);
+	if(listen(listenfd,LISTENQ)<0)
+		err_sys("listen");
+	if(addrlenp)
+		*addrlenp=res->ai_addrlen;
+
+	freeaddrinfo(ressave);
+	return listenfd;
+}
+
+int udp_client(const char *host,const char *serv,SA **saptr,socklen_t *lenp)
+{
+	int sockfd,n;
+	struct addrinfo hints,*res,*ressave;
+	
+	bzero(&hints,sizeof(hints));
+	hints.ai_family=AF_UNSPEC;
+	hints.ai_socktype=SOCK_DGRAM;
+	if((n=getaddrinfo(host,serv,&hints,&res))!=0)
+		err_quit("udp_client error for %s,%s",host,serv);
+	
+	if((*saptr=malloc(res->ai_addrlen))==NULL)
+		err_sys("malloc");
+
+	memcpy(*saptr,res->ai_addr,res->ai_addrlen);
+	*lenp=res->ai_addrlen;
+	freeaddrinfo(ressave);
+	return sockfd;
+}
+int udp_connect(const char *host,const char *serv)
+{
+	int sockfd,n;
+	struct addrinfo hints,*res,*ressave;
+	
+	bzero(&hints,sizeof(struct addrinfo));
+	hints.ai_family=AF_UNSPEC;
+	hints.ai_socktype=SOCK_DGRAM;
+
+	if((n=getaddrinfo(host,serv,&hints,&res))!=0)
+		err_quit("udp_connect error for %s,%s:%s",host,serv,gai_strerror(n));
+
+	ressave=res;
+
+	do{
+		sockfd=socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+		if(sockfd<0)
+			continue;
+		if(connect(sockfd,res->ai_addr,res->ai_addrlen)==0)
+			break;
 		
-	}
+		if(close(sockfd)<0)
+			err_sys("close");
+	}while((res=res->ai_next)!=NULL);
+
+	if(res==NULL)
+		err_sys("udp_connect error for %s,%s",host,serv);
+
+	freeaddrinfo(ressave);
+	return sockfd;
+}
+
+int udp_server(const char *host,const char *serv,socklen_t *addrlenp)
+{
+	int sockfd,n;
+	struct addrinfo hints,*res,*ressave;
+	
+	bzero(&hints,sizeof(struct addrinfo));
+	hints.ai_family=AF_UNSPEC;
+	hints.ai_socktype=SOCK_DGRAM;
+	hints.ai_flag=AI_PASSIVE;
+
+	if((n=getaddrinfo(host,serv,&hints,&res))!=0)
+		err_quit("udp_server error for %s,%s:%s",host,serv,gai_strerror(n));
+
+	ressave=res;
+
+	do{
+		sockfd=socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+
+		if(sockfd<0)
+			continue;
+		if(bind(sokfd,res->ai_addr,res->ai_addrlen)==0)
+			break;
+
+		if(close(sockfd)<0)
+			err_sys("close");
+
+	}while((res=res->ai_next)!=NULL);
+
+	if(res==NULL)
+		err_sys("udp_server error for %s,%s",host,serv);
+
+	if(addrlenp)
+		*addrlenp=res->ai_addrlen;
+
+	freeaddrinfo(ressave);
+
+	return sockfd;
 }

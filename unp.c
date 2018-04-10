@@ -30,11 +30,11 @@ char *sock_ntop(const struct sockaddr *sa,socklen_t salen)
 		{
 			struct sockaddr_in6 *sin=(struct sockaddr_in6 *)sa;
 
-			if(net_ntop(AF_INET6,&sin->sin_addr,str,sizeof(str))==NULL)
+			if(inet_ntop(AF_INET6,&sin->sin6_addr,str,sizeof(str))==NULL)
 				return NULL;
-			if(ntohs(sin->sin_port)!=0)
+			if(ntohs(sin->sin6_port)!=0)
 			{
-				snprintf(portstr,sizeof(portstr),":%d",ntohs(sin->sin_port));
+				snprintf(portstr,sizeof(portstr),":%d",ntohs(sin->sin6_port));
 				strcat(str,portstr);
 			}
 			return str;
@@ -322,7 +322,7 @@ int tcp_listen(const char *host,const char *serv,socklen_t *addrlenp)
 		err_sys("tcp_listen error for %s,%s",host,serv);
 	if(listen(listenfd,LISTENQ)<0)
 		err_sys("listen");
-	if(addrlenp)
+	if(addrlenp!=NULL)
 		*addrlenp=res->ai_addrlen;
 
 	freeaddrinfo(ressave);
@@ -388,7 +388,7 @@ int udp_server(const char *host,const char *serv,socklen_t *addrlenp)
 	bzero(&hints,sizeof(struct addrinfo));
 	hints.ai_family=AF_UNSPEC;
 	hints.ai_socktype=SOCK_DGRAM;
-	hints.ai_flag=AI_PASSIVE;
+	hints.ai_flags=AI_PASSIVE;
 
 	if((n=getaddrinfo(host,serv,&hints,&res))!=0)
 		err_quit("udp_server error for %s,%s:%s",host,serv,gai_strerror(n));
@@ -400,7 +400,7 @@ int udp_server(const char *host,const char *serv,socklen_t *addrlenp)
 
 		if(sockfd<0)
 			continue;
-		if(bind(sokfd,res->ai_addr,res->ai_addrlen)==0)
+		if(bind(sockfd,res->ai_addr,res->ai_addrlen)==0)
 			break;
 
 		if(close(sockfd)<0)
@@ -417,4 +417,73 @@ int udp_server(const char *host,const char *serv,socklen_t *addrlenp)
 	freeaddrinfo(ressave);
 
 	return sockfd;
+}
+
+extern int daemon_proc;
+
+int daemon_init(const char *pname,int facility)
+{
+	int i;
+	pid_t pid;
+	
+	if((pid=fork())<0)
+		return -1;
+	else if(pid)
+		_exit(0);
+	if(setsid()<0)
+		return -1;
+	
+	if(signal(SIGHUP,SIG_IGN)==SIG_ERR)
+		err_sys("signal");
+
+	if((pid=fork())<0)
+		return -1;
+	else if(pid)
+		_exit(0);
+
+	daemon_proc=1;
+	
+	chdir("/");
+
+	for(i=0;i<MAXFD;i++)
+		close(i);
+
+	open("/dev/NULL",O_RDONLY);
+	open("/dev/NULL",O_RDWR);
+	open("/dev/NULL",O_RDWR);
+
+	openlog(pname,LOG_PID,facility);
+
+	return 0;
+
+}
+
+static void connect_alarm(int);
+
+int connect_timeo(int sockfd,const SA *saptr,socklen_t salen,int nsec)
+{
+	sigfunc *sigfunc;
+
+	int n;
+	if((sigfunc=signal(SIGALRM,connect_alarm))==SIG_ERR)
+		err_sys("signal");
+
+	if(alarm(nsec)!=0)
+		err_msg("connect_timeo:alarm wast already set");
+
+	if((n=connect(sockfd,saptr,salen))<0)
+	{
+		close(sockfd);
+		if(errno==EINTR)
+			errno=ETIMEDOUT;
+	}
+	alarm(0);
+	if(signal(SIGALRM,sigfunc)==SIG_ERR)
+		err_sys("signal");
+
+	return (n);
+}
+static void connect_alarm(int signo)
+{
+	return;
 }

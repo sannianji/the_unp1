@@ -487,3 +487,8 @@ static void connect_alarm(int signo)
 {
 	return;
 }
+void daemon_inetd(const char *pname,int facility)
+{
+	daemon_proc=1;
+	openlog(pname,LOG_PID,facility);
+}

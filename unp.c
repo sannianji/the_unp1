@@ -224,3 +224,28 @@ int sockfd_to_family(int sockfd)
 		return -1;
 	return ss.ss_family;
 }
+struct addrinfo* host_serv(const char *host,const char *serv,int family,int socktype)
+{
+	int n;
+	struct addrinfo hints,*res;
+	bzero(&hints,sizeof(hints));
+	hints.ai_family=family;
+	hints.ai_flags=AI_CANNONNAME;
+	hints.ai_socktype=socktype;
+
+	if((n=getaddrinf(host,serv,&hints,&res))!=0)
+		return NULL;
+	return res;
+}
+int tcp_connect(const char *host,const char *serv)
+{
+	int sockfd,n;
+	struct addrinfo hints,*res,*ressave;
+	
+	bzero(&hints,sizeof(struct addrinfo));
+	hints.ai_family=AF_UNSPEC;
+	hints.ai_socktype=SOCK_STREAM;
+
+	if((n=getaddrinfo(host,serv,&hints,&res))!=0)
+		err_quit()
+}

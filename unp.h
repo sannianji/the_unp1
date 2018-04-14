@@ -49,4 +49,5 @@ int udp_server(const char *host,const char *serv,socklen_t *addrlenp);
 int daemon_init(const char *pname,int facility);
 int connect_timeo(int sockfd,const SA *saptr,socklen_t salen,int nsec);
 int daemon_inetd(const char *,int);
+char* gf_time(void);
 #endif

@@ -66,9 +66,20 @@ int main(int argc,char **argv)
 		{
 			if((n=read(fd,buf,sizeof(buf)))<0)
 				err_sys("read");
-			else if()
+			else if(n==0)
+			{
+				printf("end-of-file on %s\n",file[i].f_name);
+				if(close(fd)<0)
+					err_sys("close");
+				file[i].f_flags=F_DONE;
+				FD_CLR(fd,&rset);
+				nconn--;
+				nlefttoread--;
+			}
+			else printf("read %d bytes from %s\n",n,file[i].f_name);
 		}
 	}
+	exit(0);
 }
 void home_page(const char *host,const char *fname)
 {

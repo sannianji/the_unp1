@@ -34,4 +34,5 @@ void err_ret(const char *,...);
 int sockfd_to_family(int);
 int maxfd(int,int);
 int minfd(int,int);
+struct addrinfo* host_serv(const char *host,const char *serv,int family,int socktype);
 #endif
